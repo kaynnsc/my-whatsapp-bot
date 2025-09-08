@@ -1,17 +1,13 @@
 {
   "name": "my-whatsapp-bot",
   "version": "1.0.0",
-  "description": "WhatsApp bot using whatsapp-web.js and puppeteer-core",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "@whiskeysockets/baileys": "^6.7.19",
-    "fs": "^0.0.1-security",
-    "https-proxy-agent": "^7.0.6",
-    "node-fetch": "^2.7.0",
-    "puppeteer": "^24.19.0",
+    "@whiskeysockets/baileys": "^6.4.0",
+    "node-fetch": "^2.6.7",
     "qrcode-terminal": "^0.12.0"
   }
 }
