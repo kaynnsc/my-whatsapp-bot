@@ -1,12 +1,11 @@
 const { makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers } = require('@whiskeysockets/baileys');
 const fs = require('fs');
-const fetch = require('node-fetch');
 const qrcode = require('qrcode-terminal');
 
 console.log('🚀 Starting WhatsApp Bot on Replit...');
 
 // Replit-specific setup
-const authFolder = './auth'; // Use local folder for persistence
+const authFolder = './auth';
 const COMMANDS_FILE = "commands.json";
 
 // Load saved commands
@@ -31,17 +30,43 @@ let waitingForResponse = {};
 // Logger for Replit
 const logger = {
     level: 'silent',
-    trace: () => {},
-    debug: () => {},
-    info: () => {},
-    warn: console.warn,
-    error: console.error,
-    fatal: console.error,
+    trace: () => {}, debug: () => {}, info: () => {},
+    warn: console.warn, error: console.error, fatal: console.error,
     child: () => logger
 };
 
 // Store QR code for easy scanning
 let currentQR = null;
+
+// Mock MLBB data generator (since APIs are blocked)
+function generateMockMLBBData(userId, zoneId) {
+    // Create consistent data based on user ID
+    const seed = parseInt(userId) % 1000;
+    const usernames = [
+        "MLProPlayer", "EpicGamer", "MythicWarrior", "LegendSlayer", 
+        "NoobMaster", "CarryKing", "TankMaster", "MageExpert",
+        "AssassinPro", "SupportQueen", "JungleGod", "LaneDominator"
+    ];
+    
+    const ranks = ["Warrior", "Elite", "Master", "Grandmaster", "Epic", "Legend", "Mythic"];
+    const heroes = ["Layla", "Miya", "Alucard", "Tigreal", "Eudora", "Zilong", "Balmond"];
+    
+    const username = usernames[seed % usernames.length];
+    const rank = ranks[seed % ranks.length];
+    const level = (seed % 100) + 1;
+    const mainHero = heroes[seed % heroes.length];
+    const winRate = (70 + (seed % 30)) + '%';
+    const matches = (500 + (seed % 1500));
+    
+    return {
+        username,
+        rank,
+        level,
+        mainHero,
+        winRate,
+        matches
+    };
+}
 
 async function startBot() {
     try {
@@ -179,34 +204,37 @@ async function startBot() {
                         const zoneId = args[1];
 
                         try {
-                            // For Replit, we'll use mock data since outgoing connections are limited
-                            const mockData = {
-                                username: `MLBB_Player_${userId.slice(-4)}`,
-                                level: Math.floor(Math.random() * 100) + 1,
-                                rank: ["Warrior", "Elite", "Master", "Grandmaster", "Epic", "Legend", "Mythic"][Math.floor(Math.random() * 7)]
-                            };
-
+                            // Generate realistic mock data since APIs are blocked
+                            const mockData = generateMockMLBBData(userId, zoneId);
+                            
                             await sock.sendMessage(from, { 
-                                text: `🔍 ML Account Info\n\n🆔 User ID: ${userId}\n🌍 Zone: ${zoneId}\n👤 Nickname: ${mockData.username}\n⭐ Level: ${mockData.level}\n🏆 Rank: ${mockData.rank}\n\n⚠️ Running in demo mode (Replit network restrictions)`
+                                text: `🔍 ML Account Info\n\n🆔 User ID: ${userId}\n🌍 Zone: ${zoneId}\n👤 Nickname: ${mockData.username}\n⭐ Level: ${mockData.level}\n🏆 Rank: ${mockData.rank}\n⚔️ Main Hero: ${mockData.mainHero}\n📊 Win Rate: ${mockData.winRate}\n🎮 Matches: ${mockData.matches}\n\nℹ️ Using demo data (Replit network restrictions)`
                             });
                         } catch (err) {
                             console.error("Stalk error:", err);
-                            await sock.sendMessage(from, { text: "❌ Error fetching account info." });
+                            await sock.sendMessage(from, { text: "❌ Error generating account info." });
                         }
                         break;
                     }
 
+                    case "status":
+                        await sock.sendMessage(from, {
+                            text: `🤖 Bot Status\n\n✅ Online: Yes\n🏠 Host: Replit\n📊 Commands: ${Object.keys(customCommands).length}\n🌐 API: Demo Mode\n\nThe bot is running on Replit with simulated data due to platform restrictions.`
+                        });
+                        break;
+
                     case "help":
                         await sock.sendMessage(from, {
-                            text: "📌 Commands:\n" +
+                            text: "📌 Available Commands:\n" +
                                 ".ping - Test bot response\n" +
                                 ".addlist <cmd> || <response> - Add custom command\n" +
                                 ".addlist <cmd> - Then send response\n" +
                                 ".commands - List all custom commands\n" +
                                 ".dellist <cmd> - Delete custom command\n" +
-                                ".stalk <uid> <zone> - Check ML account (demo)\n" +
+                                ".stalk <uid> <zone> - Check ML account (demo data)\n" +
+                                ".status - Show bot status\n" +
                                 ".help - Show this help\n\n" +
-                                "➡️ Custom commands: .hello, .bye, etc."
+                                "⚠️ Note: Running on Replit - some features use demo data"
                         });
                         break;
 
